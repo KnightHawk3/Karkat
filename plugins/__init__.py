@@ -4,6 +4,7 @@ Disable a plugin globally by removing it from __modules__.
 """
 
 __modules__ = ["games",
+               "tsv",
                "web",
                "shell",
                "base",
@@ -14,4 +15,5 @@ __modules__ = ["games",
                "spellchecker",
                "tell", 
                "ai",
-               "queue"]
+               "queue",
+               "info"]
