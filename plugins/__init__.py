@@ -17,4 +17,5 @@ __modules__ = ["games",
                "ai",
                "queue",
                "info",
-               "tables"]
+               "tables",
+               "topic"]

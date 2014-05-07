@@ -22,6 +22,11 @@ snapfolder = "/var/www"
 public_url = "http://xe.tetrap.us/"
 prefix = "\x0308│\U0001f47b│\x03 "
 
+try:
+    cache = json.load(open(snapfolder + "/cache.json"))
+except:
+    cache = {}
+
 colors = [(204, 204, 204), (0, 0, 0), (53, 53, 179), (42, 140, 42), (195, 59, 59), (199, 50, 50), (128, 38, 127), (102, 54, 31), (217, 166, 65), (61, 204, 61), (25, 85, 85), (46, 140, 116), (69, 69, 230), (176, 55, 176), (76, 76, 76), (149, 149, 149)]
 
 fonts = {"arial": {"regular": "data/fonts/Arial.ttf", "bold": "data/fonts/Arial_Bold.ttf"},
@@ -173,6 +178,9 @@ def linesize(font, text):
 
 
 def save(data, fmt):
+    sig = hashlib.md5(data).hexdigest()
+    if sig in cache:
+        return cache[sig].rsplit(".", 1)[0]
     fchars =  "abcdefghijklmnopqrstuvwxyz-_+=~ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     template = snapfolder + "/%s." + fmt
     fname = random.choice(fchars)
@@ -180,6 +188,9 @@ def save(data, fmt):
         fname += random.choice(fchars)
     with open(template % fname, "wb") as f:
         f.write(data)
+    cache.update({sig: fname + "." + fmt})
+    with open(snapfolder + "/cache.json", "w") as c:
+        json.dump(cache, c)
     return fname
 
 def save_as(data, fmt):
@@ -303,6 +314,8 @@ class Snap(Callback):
     def checksnaps(self, server):
         for channel in self.settings:
             for i in self.newsnaps(channel):
+                for chan in self.settings[channel].get("linked", []):
+                    server.message(i, chan)
                 server.message(i, channel)
 
     @command("block", "(.*)", admin=True)
@@ -431,7 +444,7 @@ class Snap(Callback):
             if len(users) != allusers:
                 omitted = "Omitted %d unknown users. Use -f to force, or check your syntax is correct." % (allusers - len(users))
 
-        if username.lower() not in [i.lower() for i in users]:
+        if not users:
             users += [username]
         user = ",".join(users)
 
@@ -501,6 +514,16 @@ class Snap(Callback):
             return prefix + "Verification successful."
         else:
             return prefix + "\x0304Wrong verification code."
+
+    @command("snaplink", "(.+)", admin=True)
+    def link(self, server, msg, chan):
+        self.settings[server.lower(chan)].setdefault("linked", []).append(msg.context)
+        json.dump(self.settings, open(self.settingsf, "w"))
+
+    @command("snapunlink", "(.+)", admin=True)
+    def link(self, server, msg, chan):
+        self.settings[server.lower(chan)].setdefault("linked", []).remove(msg.context)
+        json.dump(self.settings, open(self.settingsf, "w"))
 
     @command("snaps", r"^(?:(last|first)\s+(?:(?:(\d+)(?:-|\s+to\s+))?(\d*))\s*)?((?:gifs|videos|snaps|pics|clips)(?:(?:\s+or\s+|\s+and\s+|\s*/\s*|\s*\+\s*)(?:gifs|videos|snaps|pics|clips))*)?(?:\s*(?:from|by)\s+(\S+(?:(?:\s+or\s+|\s+and\s+|\s*/\s*|\s*\+\s*)\S+)*))?(?:\s*to\s+(\S+))?$", templates={Callback.USAGE: prefix + "\x0304Usage: .snaps [first/last index] [type] [by user] [to channel]"})
     def search(self, server, message, anchor, frm, to, typefilter, users, context):
