@@ -1,4 +1,4 @@
-#! /usr/bin/python3.3
+#! /usr/bin/python3.3 -W ignore 
 # -*- coding: utf-8 -*-
 """
 Usage: %(name)s [options] <config>

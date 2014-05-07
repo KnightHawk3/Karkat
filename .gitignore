@@ -2,9 +2,8 @@
 *.swp
 *.swo
 *~
-
 *.py[cod]
-
+config/apikeys.conf
 # C extensions
 *.so
 
