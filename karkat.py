@@ -101,6 +101,8 @@ def main():
                     cmd = "nickserv AUTH %s"
                 elif msg.text.startswith("This nickname is registered."):
                     cmd = "nickserv IDENTIFY %s"
+                elif msg.text.startswith("This nickname is registered and protected."):
+                    cmd = "nickserv IDENTIFY %s"
                 else:
                     return
                 server.sendline(cmd % args["--identify"])

@@ -62,8 +62,6 @@ class AddGame(Callback):
         else:
             self.num += 1
             open(self.addfile, 'w').write(str(self.num))
-
-            return "2Thanks %s, 3the number has been increased to %s."\
-                                                % (msg.address.nick, self.num)
+            server.printer.message("3The number has been increased to %s." % (self.num), msg.address.nick, "NOTICE")
 
 __initialise__ = AddGame
