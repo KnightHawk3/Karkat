@@ -19,4 +19,6 @@ __modules__ = ["games",
                "info",
                "tables",
                "topic",
-               "help"]
+               "help",
+               "inspire",
+               "tox"]

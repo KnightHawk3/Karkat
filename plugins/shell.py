@@ -6,6 +6,7 @@ import time
 
 from util.irc import Callback
 from util.irc import Message
+from bot.events import command
 
 class Process(threading.Thread):
     def __init__(self, shell, target, invocator):
@@ -24,7 +25,7 @@ class Process(threading.Thread):
         self.parent.activeShell = False
         if time.time() - started > 2:
             exitcode = self.shell.poll()
-            self.parent.printer.message("%.2dbash│ Program exited with code %s"%(5 if exitcode else 12, exitcode), self.target)
+            self.parent.stream.message("%.2dbash│ Program exited with code %s"%(5 if exitcode else 12, exitcode), self.target)
 
 class Shell(object):
 
@@ -34,6 +35,7 @@ class Shell(object):
         self.shellThread = None
 
         server.register("privmsg", self.trigger)
+        server.register("privmsg", self.terminate)
 
     @Callback.inline
     def trigger(self, server, line):
@@ -57,9 +59,11 @@ class Shell(object):
                 self.shellThread = Process(shell, target, self)
                 self.shellThread.start()
             else:
-                self.shellThread.stdin.write(args + "\n")
+                self.shellThread.stdin.write((args + "\n").encode("utf-8"))
+                self.shellThread.stdin.flush()
 
-    def terminate(self):
+    @command("terminate", admin=True)
+    def terminate(self, server, msg):
         if self.activeShell:
             os.killpg(self.shellThread.shell.pid, signal.SIGTERM)
 
